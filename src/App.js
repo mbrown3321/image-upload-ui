@@ -1,25 +1,43 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState, useCallback, useEffect } from 'react';
+import Upload from "./Upload";
+import Gallery from "./Gallery"
 import './App.css';
 
+function transformUploads(uploads) {
+  return uploads.map(u => ({
+    original: u.imageUrl,
+    thumbnail: u.thumbnailUrl
+  }));
+}
+
 function App() {
+  const [images, setImages] = useState(null);
+
+  const fetchUploads = useCallback(() => {
+    fetch('http://localhost:8000/api/uploads')
+      .then(response => response.json().then(data => setImages(transformUploads(data))))
+      .catch(console.error)
+  }, []);
+
+  useEffect(() => {
+    fetchUploads();
+  }, [fetchUploads])
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <div className="container">
+        <div className="upload-container">
+          <Upload fetchUploads={fetchUploads} />
+        </div>
+      </div>
+      <div className="container">
+        <div className="gallery-container">
+          {images && images.length ? (
+            <Gallery images={images} />
+          ) : null}
+        </div>
+      </div>
+    </>
   );
 }
 
